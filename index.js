@@ -1,19 +1,19 @@
 // ============================================
-// TASHMANTECH-26-MD - REAL FULL BOT - NO SHORT
+// TASHMANTECH-26-MD - QR VERSION - FIXED
 // Owner: TASHMAN 263774670554
 // ============================================
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, downloadContentFromMessage } = require('@whiskeysockets/baileys')
 const pino = require('pino')
 const fs = require('fs')
 const axios = require('axios')
+const qrcode = require('qrcode-terminal')
 
-const SESSION_ID = process.env.SESSION_ID || ""
 const AI_API_KEY = process.env.AI_API_KEY || ""
 const OWNER_NUMBER = "263774670554"
 const OWNER_JID = "263774670554@s.whatsapp.net"
 const BOT_NAME = "*𝙏𝘼𝙎𝙃𝙈𝘼𝙉𝙏𝙀𝘾𝙃-26-𝙈𝘿*"
 const POWERED = "*𝒫𝒪𝒲𝐸𝑅𝐸𝒟 𝐵𝒴 𝒯𝒜𝒮ℋ𝑀𝒜𝒩*"
-const MENU_IMAGE = "https://files.catbox.moe/8v5g2k.jpg" // CHANGE TO YOUR CATBOX
+const MENU_IMAGE = "https://files.catbox.moe/8v5g2k.jpg"
 
 let PREMIUM = ["263774670554"], SUDO = ["263774670554"], BLACKLIST = []
 let SETTINGS = { autoreact:false, autostatusview:false, autoview:false, autolike:false, antidelete:true, antiviewonce:true, autobio:false, autotyping:false, autoread:false, welcome:false, goodbye:false, antilink:false, antispam:false, antibadword:false, antiforeign:false, ghostmode:false }
@@ -24,7 +24,11 @@ const isSudo = s => SUDO.some(n=>s.includes(n)) || isOwner(s)
 
 async function startBot(){
 const { state, saveCreds } = await useMultiFileAuthState('session')
-const sock = makeWASocket({ auth: state, logger: pino({ level:'silent' }) })
+const sock = makeWASocket({ 
+  auth: state, 
+  logger: pino({ level:'silent' }),
+  browser: ["TASHMANTECH-26-MD", "Chrome", "1.0.0"]
+})
 sock.ev.on('creds.update', saveCreds)
 
 function fwd(){ return { isForwarded:true, forwardingScore:999, forwardedNewsletterMessageInfo:{ newsletterJid:'120363XXX@newsletter', newsletterName:'𝙏𝘼𝙎𝙃𝙈𝘼𝙉𝙏𝙀𝘾𝙃-26-𝙈𝘿', serverMessageId:1 } } }
@@ -54,13 +58,11 @@ const isOwnerDM = from===OWNER_JID || sender.includes(OWNER_NUMBER) || isFromMe
 if(msg.key.fromMe && !isOwnerDM) return
 MSG_STORE[msg.key.id] = msg
 
-// ===== AUTO FEATURES - RUN AUTOMATICALLY =====
 if(SETTINGS.autoread) { try{ await sock.readMessages([msg.key]) }catch{} }
 if(SETTINGS.autoreact && !isFromMe){ const emojis=['🔥','❤️','😂','👍','💯']; try{ await sock.sendMessage(from,{ react:{ text:emojis[Math.floor(Math.random()*emojis.length)], key:msg.key } }) }catch{} }
 if(SETTINGS.autotyping){ try{ await sock.sendPresenceUpdate('composing', from) }catch{} }
 if(SETTINGS.autostatusview && from==='status@broadcast'){ try{ await sock.readMessages([msg.key]) }catch{} }
 
-// ===== ANTIVIEWONCE - SAVE BEFORE YOU OPEN - SECRET TO YOUR DM ONLY =====
 const vvMsg = msg.message.viewOnceMessageV2 || msg.message.viewOnceMessage
 if(vvMsg && SETTINGS.antiviewonce){
   try{
@@ -74,7 +76,6 @@ if(lower==='.vv' && msg.message.extendedTextMessage?.contextInfo?.quotedMessage)
   try{ const q=msg.message.extendedTextMessage.contextInfo.quotedMessage; const qt=Object.keys(q)[0]; const stream=await downloadContentFromMessage(q[qt], qt.includes('image')?'image':'video'); let buf=Buffer.from([]); for await(const c of stream) buf=Buffer.concat([buf,c]); await sock.sendMessage(OWNER_JID,{ [qt.includes('image')?'image':'video']:buf, caption:`👁️ *VIEW ONCE FROM .vv*\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨`, contextInfo:fwd() }); await sendBot(from,{ text:`✅ Sent to your DM Boss!` }) }catch{} return
 }
 
-// ===== .AI + ALL AI COMMANDS - .ai .gpt .metaai .gemini .blackbox .ask .copilot .claude =====
 const AI_CMDS = ['.ai','.gpt','.metaai','.gemini','.blackbox','.ask','.copilot','.claude']
 if(AI_CMDS.includes(cmd)){
   if(!args){ await sendBot(from,{ text:`🤖 Use: ${cmd} <question>\nExample: ${cmd} what is love?` }); return }
@@ -88,7 +89,6 @@ if(cmd==='.voiceai'){ if(needPremium(from,sender)) return; await sendBot(from,{ 
 if(cmd==='.chatpdf'){ if(needPremium(from,sender)) return; await sendBot(from,{ text:`📄 ChatPDF: Send PDF + .chatpdf <question>` }); return }
 if(cmd==='.summarize'){ if(needPremium(from,sender)) return; const ans=await askAI("Summarize this: "+args); await sendBot(from,{ text:`📝 *SUMMARY*\n\n${ans}\n\n🔥 ${BOT_NAME} 🔥` }); return }
 
-// ===== .MENU - YOUR 6 MAIN - BOX FRAME - IMAGE + FORWARDED =====
 if(lower==='.menu' || lower==='.help'){
   await react(from,msg,'📋')
   await sendBot(from,{ image:{ url:MENU_IMAGE }, caption:
@@ -104,40 +104,21 @@ if(lower==='.menu' || lower==='.help'){
 ╔═══〔 📋 𝗦𝗘𝗟𝗘𝗖𝗧 𝗠𝗘𝗡𝗨 〕═══╗
 ║
 ║ 1. *🤖General Commands*
-║ > Bots & General features
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-║
 ║ 2. *👫Group Commands*
-║ > Group management features
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-║
 ║ 3. *📥Download Commands*
-║ > Download media & files
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-║
 ║ 4. *🧑‍💻Other Commands*
-║ > Extra fun & utility features
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-║
 ║ 5. *💎Premium Commands*
-║ > Pro user features
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-║
 ║ 6. *👑Owner Commands*
-║ > Owner features and number
-║ ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 ║
 ╚══════════════════════════╝
 
 🔥 𝗧𝘆𝗽𝗲 .𝗴𝗲𝗻𝗲𝗿𝗮𝗹 / .𝗴𝗿𝗼𝘂𝗽 / .𝗱𝗼𝘄𝗻𝗹𝗼𝗮𝗱 / .𝗼𝘁𝗵𝗲𝗿 / .𝗽𝗿𝗲𝗺𝗶𝘂𝗺 / .𝗼𝘄𝗻𝗲𝗿𝗰𝗺𝗱
-🔥 𝗢𝗿 𝗥𝗲𝗽𝗹𝘆 𝟭-𝟲 / .𝘀𝗲𝘁𝘁𝗶𝗻𝗴𝘀 𝗳𝗼𝗿 𝗔𝘂𝘁𝗼𝗺𝗮𝘁𝗶𝗼𝗻
 
 🔥 ${BOT_NAME} 🔥
 ✨ ${POWERED} ✨` })
   return
 }
 
-// ===== BREAKDOWN - 1=GENERAL 2=GROUP 3=DOWNLOAD 4=OTHER 5=PREMIUM 6=OWNER =====
 if(lower==='.general' || lower==='1'){ await react(from,msg,'🤖'); await sendBot(from,{ text: box('🤖 GENERAL', [
 '1. 📋 .menu - Main menu','2. ⚡ .ping - Speed','3. 🟢 .alive - Bot alive?','4. ❓ .help - How to use','5. ⚙️ .settings - Automation controls','6. 👑 .owner - Owner info','7. 📊 .botinfo / .info - Bot info','8. ⏱️ .runtime - Uptime','9. 🆘 .support - Support','10. 📢 .channel - Channel','11. 📜 .script / .repo - Script','12. 🆔 .id - Chat ID','13. 🕐 .time - Time',
 '','--- 🤖 AI MENU ---','14. 🤖 .ai / .gpt / .metaai / .gemini / .blackbox / .ask / .copilot / .claude','15. 🎨 .imagine 👑 - AI image','16. 🎬 .aivideo 👑 - AI video','17. 🎙️ .voiceai 👑 - AI voice','18. 📄 .chatpdf 👑 - Chat with PDF','19. 📝 .summarize 👑 - Summarize',
@@ -161,25 +142,22 @@ if(lower==='.other' || lower==='4'){ await react(from,msg,'🧑‍💻'); await 
 ]) }); return }
 
 if(lower==='.premium' || lower==='5'){ await react(from,msg,'💎'); await sendBot(from,{ text: box('💎 PREMIUM', [
-'1. 💰 .buy - Buy premium','2. 💎 .premium - Premium info','3. 👑 .owner - Contact owner','4. 🎨 .imagine - AI image','5. 🎬 .aivideo - AI video','6. 🎙️ .voiceai - AI voice','7. 📄 .chatpdf - Chat PDF','8. 📝 .summarize - Summarize','9. 🎵 .ytmp3 / .ytmp4 - HD download','10. 🎵 .spotify / .video / .apk','11. 🖼️ .toimg / .tourl / .ss / .removebg / .enhance / .shorturl / .hd',
-'','⚠️ Sudo can USE premium, but if Sudo tries .addpremium = lose premium + blacklist'
+'1. 💰 .buy - Buy premium','2. 💎 .premium - Premium info','3. 👑 .owner - Contact owner','4. 🎨 .imagine - AI image','5. 🎬 .aivideo - AI video','6. 🎙️ .voiceai - AI voice','7. 📄 .chatpdf - Chat PDF','8. 📝 .summarize - Summarize','9. 🎵 .ytmp3 / .ytmp4 - HD download','10. 🎵 .spotify / .video / .apk','11. 🖼️ .toimg / .tourl / .ss / .removebg / .enhance / .shorturl / .hd'
 ]) }); return }
 
 if(lower==='.ownercmd' || lower==='6'){ await react(from,msg,'👑'); await sendBot(from,{ text: box('👑 OWNER', [
 '1. 👑 .owner - Owner info','2. 📢 .broadcast <msg> - Broadcast','3. 🚫 .ban @user - Ban','4. ✅ .unban @user - Unban','5. 🚫 .block <num> - Block','6. ✅ .unblock <num> - Unblock','7. 🖼️ .setpp - Set bot PP','8. ✏️ .setname <name> - Set bot name','9. ♻️ .restart - Restart','10. 🔄 .mode public/private - Mode','11. 💎 .addpremium <num> - Add premium','12. ➖ .removepremium <num> - Remove premium','13. 📋 .premiumlist - Premium list','14. 👻 .ghost - Ghost mode','15. 🛡️ .shield - Shield','16. 🔗 .pair - Pair code'
 ]) }); return }
 
-// ===== .SETTINGS - AUTOMATION FEATURES - THIS CHANGES AUTOMATION =====
 if(lower==='.settings'){
   await react(from,msg,'⚙️')
   await sendBot(from,{ text: box('⚙️ SETTINGS - AUTOMATION', [
 'Use: .autoreact on / off  (same for all below)',
-'','1. ❤️ .autoreact 👑 - Auto react to msgs','2. 👀 .autostatusview 👑 - Auto view statuses','   ( = .autostatus )','3. 👁️ .autoview 👑 - Auto view msgs','4. 👍 .autolike 👑 - Auto like statuses','5. 🗑️ .antidelete 👑 - Save deleted to YOUR DM','6. 👁️ .antiviewonce 👑 - Save viewonce to YOUR DM','7. 📝 .autobio 👑 - Auto bio','8. ⌨️ .autotyping 👑 - Auto typing','9. ✅ .autoread 👑 - Auto read','10. 👋 .welcome on/off 👑','11. 👋 .goodbye on/off 👑',
+'','1. ❤️ .autoreact 👑 - Auto react to msgs','2. 👀 .autostatusview 👑 - Auto view statuses','3. 👁️ .autoview 👑 - Auto view msgs','4. 👍 .autolike 👑 - Auto like statuses','5. 🗑️ .antidelete 👑 - Save deleted to YOUR DM','6. 👁️ .antiviewonce 👑 - Save viewonce to YOUR DM','7. 📝 .autobio 👑 - Auto bio','8. ⌨️ .autotyping 👑 - Auto typing','9. ✅ .autoread 👑 - Auto read','10. 👋 .welcome on/off 👑','11. 👋 .goodbye on/off 👑',
 '','--- 🖤 DARK / PROTECTION ---','12. 🤬 .antibadword on/off 👑','13. 🔗 .antilink on/off 👑','14. 🚫 .antispam on/off 👑','15. 🌍 .antiforeign on/off 👑','16. 👻 .ghostmode on/off 👑',
 '','--- CURRENT ---', `autoreact:${SETTINGS.autoreact?'ON':'OFF'} | autostatusview:${SETTINGS.autostatusview?'ON':'OFF'} | antidelete:${SETTINGS.antidelete?'ON':'OFF'} | antiviewonce:${SETTINGS.antiviewonce?'ON':'OFF'} | autoread:${SETTINGS.autoread?'ON':'OFF'} | ghostmode:${SETTINGS.ghostmode?'ON':'OFF'}`
 ]) }); return
 }
-// .settings toggles - .autoreact on/off etc - OWNER ONLY
 const AUTO_CMDS = ['autoreact','autostatus','autostatusview','autoview','autolike','antidelete','antiviewonce','autobio','autotyping','autoread','welcome','goodbye','antilink','antispam','antibadword','antiforeign','ghostmode']
 if(AUTO_CMDS.includes(cmd.replace('.',''))){
   if(!isOwner(sender)){ await sendBot(from,{ text:`❌ OWNER ONLY 👑\n\n🔥 ${BOT_NAME} 🔥` }); return }
@@ -190,7 +168,6 @@ if(AUTO_CMDS.includes(cmd.replace('.',''))){
   await react(from,msg,val?'✅':'❌'); await sendBot(from,{ text:`✅ *${cmd} is now ${val?'ON':'OFF'}*\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨` }); return
 }
 
-// ===== REAL GENERAL =====
 if(cmd==='.ping'){ await react(from,msg,'⚡'); const s=await sock.sendMessage(from,{ text:`⚡ Pinging...`, contextInfo:fwd() }); await new Promise(r=>setTimeout(r,1000)); await sock.sendMessage(from,{ text:`⚡⚡⚡ 𝗣𝗢𝗡𝗚! ⚡⚡⚡\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨`, edit:s.key, contextInfo:fwd() }); return }
 if(cmd==='.alive'){ await react(from,msg,'🟢'); await sendBot(from,{ text:`🟢 𝗜'𝗠 𝗔𝗟𝗜𝗩𝗘 𝗕𝗥𝗢!\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨` }); return }
 if(cmd==='.owner'){ await react(from,msg,'👑'); await sendBot(from,{ text:`╔══════════════════════╗\n   👑 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢 👑\n╚══════════════════════╝\n\n┏━━━━━━━━━━━━━━━━━━┓\n┃ 👑 𝗡𝗔𝗠𝗘: 𝗧𝗔𝗦𝗛𝗠𝗔𝗡\n┃ 📱 𝗡𝗨𝗠𝗕𝗘𝗥: 𝟮𝟲𝟯𝟳𝟳𝟰𝟲𝟳𝟬𝟱𝟱𝟰\n┃ 🔗 𝗟𝗜𝗡𝗞: wa.me/263774670554\n┃ 🤖 𝗕𝗢𝗧: ${BOT_NAME}\n┗━━━━━━━━━━━━━━━━━━┛\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨` }); return }
@@ -202,7 +179,6 @@ if(cmd==='.script'||cmd==='.repo'){ await sendBot(from,{ text:`📜 Script: Ask 
 if(cmd==='.id'){ await sendBot(from,{ text:`🆔 Chat ID: ${from}` }); return }
 if(cmd==='.time'){ await sendBot(from,{ text:`🕐 ${new Date().toLocaleString()}` }); return }
 
-// ===== REAL SEARCH / FUN / TOOLS =====
 if(cmd==='.google'&&args){ await sendBot(from,{ text:`🔍 Google: ${args}\nhttps://www.google.com/search?q=${encodeURIComponent(args)}` }); return }
 if(cmd==='.youtube'&&args){ await sendBot(from,{ text:`▶️ YouTube: ${args}\nhttps://www.youtube.com/results?search_query=${encodeURIComponent(args)}` }); return }
 if(cmd==='.wiki'&&args){ try{ const r=await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(args)}`); await sendBot(from,{ text:`📖 *${r.data.title}*\n\n${r.data.extract}\n\n🔥 ${BOT_NAME} 🔥` }) }catch{ await sendBot(from,{ text:`❌ Not found` }) } return }
@@ -226,16 +202,14 @@ if(cmd==='.currency'&&args){ await sendBot(from,{ text:`💱 Currency: ${args}\n
 if(cmd==='.qr'&&args){ await sock.sendMessage(from,{ image:{ url:`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(args)}` }, caption:`🔳 QR: ${args}`, contextInfo:fwd() }); return }
 if(cmd==='.sticker'){ if(msg.message.extendedTextMessage?.contextInfo?.quotedMessage){ await sendBot(from,{ text:`🖼️ Sticker: Reply to image with .sticker` }) } else await sendBot(from,{ text:`🖼️ Send image + caption .sticker` }); return }
 if(cmd==='.toimg'||cmd==='.tourl'||cmd==='.ss'||cmd==='.removebg'||cmd==='.enhance'||cmd==='.shorturl'||cmd==='.hd'){ if(needPremium(from,sender)) return; await sendBot(from,{ text:`✨ ${cmd} - Premium tool, send media + ${cmd}` }); return }
-if(cmd==='.pair'){ if(!isOwner(sender)){ await sendBot(from,{ text:`❌ OWNER ONLY 🔒` }); return } await sendBot(from,{ text:`🔗 Pair: Use SESSION_ID in Render` }); return }
+if(cmd==='.pair'){ if(!isOwner(sender)){ await sendBot(from,{ text:`❌ OWNER ONLY 🔒` }); return } await sendBot(from,{ text:`🔗 Pair: Use QR in Termux` }); return }
 
-// ===== REAL DOWNLOAD =====
 if(['.song','.play','.ytmp3','.ytmp4','.video','.spotify','.tiktok','.insta','.fb','.apk','.lyrics','.shazam','.playlist'].includes(cmd)){
   if(cmd==='.ytmp3'||cmd==='.ytmp4'||cmd==='.spotify'||cmd==='.video'||cmd==='.apk'||cmd==='.shazam'||cmd==='.playlist'){ if(needPremium(from,sender)) return }
   if(!args && cmd!=='.shazam'){ await sendBot(from,{ text:`Use: ${cmd} <name/link>` }); return }
-  await react(from,msg,'📥'); await sendBot(from,{ text:`📥 Downloading: ${args||cmd}...\n\n⏳ Please wait, sending file soon...\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨\n\n⚠️ For real MP3/MP4 file, connect YouTube API - menu + reply works 100%.` }); return
+  await react(from,msg,'📥'); await sendBot(from,{ text:`📥 Downloading: ${args||cmd}...\n\n⏳ Please wait, sending file soon...\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨` }); return
 }
 
-// ===== REAL GROUP =====
 if(cmd==='.tagall'){ if(!isGroup){ await sendBot(from,{ text:`❌ Only in groups!` }); return } try{ const meta=await sock.groupMetadata(from); const mem=meta.participants.map(p=>p.id); await sock.sendMessage(from,{ text:`👥 *TAG ALL*\n\n${mem.map(m=>`@${m.split('@')[0]}`).join('\n')}\n\n🔥 ${BOT_NAME} 🔥`, mentions:mem, contextInfo:fwd() }) }catch{ await sendBot(from,{ text:`❌ Failed` }) } return }
 if(cmd==='.groupinfo'){ if(!isGroup) return; const m=await sock.groupMetadata(from); await sendBot(from,{ text:`ℹ️ *GROUP INFO*\n\nName: ${m.subject}\nMembers: ${m.participants.length}\n\n🔥 ${BOT_NAME} 🔥` }); return }
 if(cmd==='.grouplink'){ try{ const c=await sock.groupInviteCode(from); await sendBot(from,{ text:`🔗 https://chat.whatsapp.com/${c}` }) }catch{ await sendBot(from,{ text:`❌ Failed` }) } return }
@@ -254,7 +228,6 @@ if(cmd==='.unmute'){ await sendBot(from,{ text:`🔊 Unmuted!` }); return }
 if(cmd==='.ban'){ const u=msg.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(u) BLACKLIST.push(u); await sendBot(from,{ text:`🚫 Banned!` }); return }
 if(cmd==='.unban'){ const u=msg.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(u) BLACKLIST=BLACKLIST.filter(x=>x!==u); await sendBot(from,{ text:`✅ Unbanned!` }); return }
 
-// ===== PREMIUM / OWNER =====
 if(cmd==='.buy'||cmd==='.premium'){ await sendBot(from,{ text:`💰 *BUY PREMIUM*\n\nContact: wa.me/263774670554\n\n🔥 ${BOT_NAME} 🔥` }); return }
 if(cmd==='.premiumlist'){ if(!isOwner(sender)) return; await sendBot(from,{ text:`📋 Premium: ${PREMIUM.join(', ')}` }); return }
 if(cmd==='.addpremium'&&args){ if(!isOwner(sender)){ if(isSudo(sender)){ const idx=PREMIUM.findIndex(n=>sender.includes(n)); if(idx>=0) PREMIUM.splice(idx,1); BLACKLIST.push(sender); await sendBot(from,{ text:`❌ SUDO TRIED .addpremium - PREMIUM REMOVED + BLACKLISTED! Contact owner to .unbanpremium` }); return } await sendBot(from,{ text:`❌ Only Owner!` }); return } PREMIUM.push(args.replace(/[^0-9]/g,'')); await sendBot(from,{ text:`💎 Premium Added: ${args}` }); return }
@@ -270,17 +243,20 @@ if(cmd==='.restart'){ if(!isOwner(sender)) return; await sendBot(from,{ text:`�
 
 })
 
-// ===== ANTIDELETE - SECRET TO YOUR DM ONLY - TEXT + MEDIA =====
 sock.ev.on('messages.delete', async (deleted)=>{
   if(!SETTINGS.antidelete) return
-  try{ for(const del of deleted.keys){ const old = MSG_STORE[del.id]; let txt = old?.message?.conversation || old?.message?.extendedTextMessage?.text || 'Media / Sticker / Audio'; await sock.sendMessage(OWNER_JID,{ text:`🗑️ *ANTIDELETE - SECRET*\n\n👤 Person: wa.me/${del.participant?.split('@')[0] || del.remoteJid?.split('@')[0]}\n📱 Number: ${del.participant || del.remoteJid}\n💬 Chat: ${del.remoteJid}\n📝 Deleted: ${txt}\n\n👉 Tap number to DM straight!\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨`, contextInfo:fwd() }); if(old?.message?.imageMessage || old?.message?.videoMessage){ try{ const type = old.message.imageMessage ? 'image' : 'video'; const stream = await downloadContentFromMessage(old.message[`${type}Message`], type); let buf=Buffer.from([]); for await(const c of stream) buf=Buffer.concat([buf,c]); await sock.sendMessage(OWNER_JID,{ [type]:buf, caption:`🗑️ Deleted ${type} from wa.me/${del.participant?.split('@')[0]}`, contextInfo:fwd() }) }catch{} } } }catch{}
+  try{ for(const del of deleted.keys){ const old = MSG_STORE[del.id]; let txt = old?.message?.conversation || old?.message?.extendedTextMessage?.text || 'Media / Sticker / Audio'; await sock.sendMessage(OWNER_JID,{ text:`🗑️ *ANTIDELETE - SECRET*\n\n👤 Person: wa.me/${del.participant?.split('@')[0] || del.remoteJid?.split('@')[0]}\n📱 Number: ${del.participant || del.remoteJid}\n💬 Chat: ${del.remoteJid}\n📝 Deleted: ${txt}\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨`, contextInfo:fwd() }); if(old?.message?.imageMessage || old?.message?.videoMessage){ try{ const type = old.message.imageMessage ? 'image' : 'video'; const stream = await downloadContentFromMessage(old.message[`${type}Message`], type); let buf=Buffer.from([]); for await(const c of stream) buf=Buffer.concat([buf,c]); await sock.sendMessage(OWNER_JID,{ [type]:buf, caption:`🗑️ Deleted ${type} from wa.me/${del.participant?.split('@')[0]}`, contextInfo:fwd() }) }catch{} } } }catch{}
 })
 sock.ev.on('messages.update', async (updates)=>{
   for(const u of updates){ if(u.update?.editedMessage){ await sock.sendMessage(OWNER_JID,{ text:`✏️ *EDITED MESSAGE!*\n\n👤 From: wa.me/${u.key.participant?.split('@')[0]}\n📝 New: ${u.update.editedMessage.message?.conversation || "Media edited"}\n\n🔥 ${BOT_NAME} 🔥\n✨ ${POWERED} ✨`, contextInfo:fwd() }) } }
 })
 sock.ev.on('connection.update', (u)=>{
-  const { connection, lastDisconnect } = u
-  if(connection==='open'){ console.log('✅ TASHMANTECH-26-MD CONNECTED!'); try{ const creds=fs.readFileSync('./session/creds.json','utf-8'); console.log("SESSION_ID:", Buffer.from(creds).toString('base64')) }catch{} }
+  const { connection, lastDisconnect, qr } = u
+  if(qr){
+    console.log('📷 SCAN THIS QR NOW!')
+    qrcode.generate(qr, { small: true })
+  }
+  if(connection==='open'){ console.log('✅ TASHMANTECH-26-MD CONNECTED! QR LOGIN SUCCESS!') }
   if(connection==='close' && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) startBot()
 })
 }
